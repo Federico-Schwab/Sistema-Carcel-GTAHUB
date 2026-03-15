@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Misiones</title>
+    <style>
+        body {
+            background-color: #111;
+            font-family: Arial;
+            color: white;
+        }
+
+        .contenedor {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            width: 250px;
+            padding: 18px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .buena {
+            background-color: #1f5f2e;
+            border: 3px solid #3cff77;
+        }
+
+        .mala {
+            background-color: #5f1f1f;
+            border: 3px solid #ff3c3c;
+        }
+
+        button {
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        img {
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        button:disabled {
+            background-color: gray;
+            cursor: not-allowed;
+        }
+        
+        .barra-container {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 20px;
+}
+
+.barra-fondo {
+    width: 100%;
+    height: 25px;
+    background-color: #222;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.barra-centro {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background-color: white;
+    transform: translateX(-50%);
+}
+
+.barra-izq {
+    position: absolute;
+    right: 50%;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background-color: red;
+    transition: width 0.3s ease;
+}
+
+.barra-der {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background-color: limegreen;
+    transition: width 0.3s ease;
+}
+
+#textoConducta {
+    text-align: center;
+    margin-top: 5px;
+}
+
+.panel-usuario{
+    background:#1b1b1b;
+    padding:15px;
+    border-radius:10px;
+    width:300px;
+    margin-bottom:20px;
+}
+
+    </style>
+</head>
+<body>
+
+<h1>Misiones </h1> 
+<button onclick="reiniciarUsuario()">Reiniciar Partida</button>
+
+
+<div class="barra-container">
+    <div class="barra-fondo">
+        <div class="barra-izq" id="barraIzq"></div>
+        <div class="barra-der" id="barraDer"></div>
+        <div class="barra-centro"></div>
+    </div>
+    <p id="textoConducta"></p>
+    <p id="relojCondena"></p>
+</div>
+
+<div class="contenedor" id="contenedor"></div>
+
+<audio id="sonidoCD">
+<source src="alerta.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+
+// 🔹 ARRAY DE MISIONES
+let misiones = [
+    // MISIONES BUENAS
+    {
+        id: 1,
+        nombre: "#1 Quemaando Calorías",
+        tipo: "buena",
+        imagen: "img/quemandocalorias.png",
+        bonos: 8,
+        conducta: 13,
+        sentencia: 0,
+        cooldown: 600
+    },
+    {
+        id: 2,
+        nombre: "#2 Herramientas de Redención",
+        tipo: "buena",
+        imagen: "img/herramientasderedencion.png",
+        bonos: 9,
+        conducta: 15,
+        sentencia: -11,
+        cooldown: 1500
+    },
+    {
+        id: 3,
+        nombre: "#3 Organizar Almacen",
+        tipo: "buena",
+        imagen: "img/organizaralmacen.png",
+        bonos: 5,
+        conducta: 11,
+        sentencia: -6,
+        cooldown: 720
+    },
+    {
+        id: 4,
+        nombre: "#4 Alimentando tu futuro",
+        tipo: "buena",
+        imagen: "img/alimentandotufuturo.png",
+        bonos: 10,
+        conducta: 18,
+        sentencia: -16,
+        cooldown: 1200
+    },
+    {
+        id: 5,
+        nombre: "#5 sabiduriaresguardada",
+        tipo: "buena",
+        imagen: "img/sabiduriaresguardada.png",
+        bonos: 9,
+        conducta: 9,
+        sentencia: -6,
+        cooldown: 900
+    },
+    {
+        id: 6,
+        nombre: "#6 Sueños Tallados",
+        tipo: "buena",
+        imagen: "img/suenostallados.png",
+        bonos: 12,
+        conducta: 12,
+        sentencia: -12,
+        cooldown: 1500
+    },
+    {
+        id: 7,
+        nombre: "#7 Sudor tras las Rejas",
+        tipo: "buena",
+        imagen: "img/sudortraslasrejas.png",
+        bonos: 11,
+        conducta: 20,
+        sentencia: 0,
+        cooldown: 900
+    },
+    {
+        id: 8,
+        nombre: "#8 saciando el vacio",
+        tipo: "buena",
+        imagen: "img/saciandoelvacio.png",
+        bonos: 7,
+        conducta: 12,
+        sentencia: -7,
+        cooldown: 1080
+    },
+    {
+        id: 12,
+        nombre: "#9 Ayudante de cocina",
+        tipo: "buena",
+        imagen: "img/ayudantedecocina.png",
+        bonos: 9,
+        conducta: 16,
+        sentencia: -13,
+        cooldown: 600
+    },
+    {
+        id: 10,
+        nombre: "#10 Barriendo rumores",
+        tipo: "buena",
+        imagen: "img/barriendorumores.png",
+        bonos: 11,
+        conducta: 22,
+        sentencia: -18,
+        cooldown: 480
+    },
+    {
+        id: 11,
+        nombre: "#11 Pintando Libertad",
+        tipo: "buena",
+        imagen: "img/pintandolibertad.png",
+        bonos: 8,
+        conducta: 14,
+        sentencia: -9,
+        cooldown: 1200
+    },
+    {
+        id: 12,
+        nombre: "#12 Ayudante de cocina",
+        tipo: "buena",
+        imagen: "img/limpiandolasmanchas.png",
+        bonos: 8,
+        conducta: 16,
+        sentencia: -9,
+        cooldown: 720
+    },
+    
+    // MISIONES MALAS
+
+    {
+        id: 13,
+        nombre: "#1 Negocios prohibidos",
+        tipo: "mala",
+        imagen: "img/negociosprohibidos.png",
+        conducta: -30,
+        sentencia: 0,
+        cooldown: 1800,
+    }, 
+    {
+        id: 14,
+        nombre: "#2 Sentencia Justa",
+        tipo: "mala",
+        imagen: "img/sentenciajusta.png",
+        conducta: -30,
+        sentencia: 60,
+        cooldown: 5400,
+    }, 
+    {
+        id: 15,
+        nombre: "#3 El Legado del Gladiador",
+        tipo: "mala",
+        imagen: "img/ellegadodelgladiador.png",
+        conducta: -0,
+        sentencia: 0,
+        cooldown: 60000,
+    }, 
+    {
+        id: 16,
+        nombre: "#4 Fuga de Infromación",
+        tipo: "mala",
+        imagen: "img/fugadeinformacion.png",
+        conducta: -18,
+        sentencia: 25,
+        cooldown: 1800,
+    }, 
+    {
+        id: 17,
+        nombre: "#5 Recoger objetos del exterior",
+        tipo: "mala",
+        imagen: "img/Recogerobjetosdelexterior.png",
+        conducta: -12,
+        sentencia: 0,
+        cooldown: 1200,
+    }, 
+    {
+        id: 18,
+        nombre: "#6 El precio del poder",
+        tipo: "mala",
+        imagen: "img/elprecioeldelpoder.png",
+        conducta: -20,
+        sentencia: 0,
+        cooldown: 1800,
+    }, 
+    {
+        id: 19,
+        nombre: "#7 Proveedor de Nicotina",
+        tipo: "mala",
+        imagen: "img/proveedordenicotina.png",
+        conducta: -15,
+        sentencia: 0,
+        cooldown: 1200,
+    }, 
+    {
+        id: 20,
+        nombre: "#8 Alianza oscura",
+        tipo: "mala",
+        imagen: "img/alianzaoscura.png",
+        conducta: -20,
+        sentencia: 35,
+        cooldown: 1500,
+    }, 
+    {
+        id: 21,
+        nombre: "#9 Ajuste de cuentas",
+        tipo: "mala",
+        imagen: "img/ajustedecuentas.png",
+        conducta: -15,
+        sentencia: 25,
+        cooldown: 1800,
+    }, 
+    {
+        id: 22,
+        nombre: "#10 Graffiti",
+        tipo: "mala",
+        imagen: "img/graffiti.png",
+        conducta: 0,
+        sentencia: 0,
+        cooldown: 60000,
+    }, 
+    {
+        id: 23,
+        nombre: "#11 Tras las rejas",
+        tipo: "mala",
+        imagen: "img/traslasrejas.png",
+        conducta: -25,
+        sentencia: 40,
+        cooldown: 2700,
+    }, 
+];
+
+let usuario = null;
+
+function cargarUsuario() {
+
+    const guardado = localStorage.getItem("usuario");
+
+    if (guardado) {
+        usuario = JSON.parse(guardado);
+    } else {
+
+        let conductaInicial = parseInt(prompt("Conducta inicial (-100 a 100):"));
+        if (isNaN(conductaInicial) || conductaInicial > 100 || conductaInicial < -100) {
+            conductaInicial = 0;
+        }
+
+        let condenaInicial = parseInt(prompt("Minutos de condena inicial:"));
+        if (isNaN(condenaInicial) || condenaInicial < 0) {
+            condenaInicial = 0;
+        }
+
+        let finCondena = null;
+
+        if (condenaInicial > 0) {
+            finCondena = Date.now() + (condenaInicial * 60000);
+        }
+
+        usuario = {
+            conducta: conductaInicial,
+            finCondena: finCondena,
+            bonos: 0,
+            cooldowns: {}
+        };
+
+        guardarUsuario();
+    }
+}
+
+// 🔹 FUNCIONES AUXILIARES (helpers)
+function formatearTiempo(segundos) {
+
+    let minutos = Math.floor(segundos / 60);
+    let seg = segundos % 60;
+
+    if (minutos > 0) {
+        return minutos + "m " + seg + "s";
+    } else {
+        return seg + "s";
+    }
+}
+
+// 🔹 FUNCIÓN QUE CREA LAS CARDS
+function cargarMisiones() {
+
+    let contenedor = document.getElementById("contenedor");
+
+        // Ordenar por tipo (buena primero)
+    misiones.sort(function(a, b) {
+    if (a.tipo === b.tipo) return 0;
+    if (a.tipo === "buena") return -1;
+    return 1;
+});
+
+        // Limpiar contenedor
+    for (let i = 0; i < misiones.length; i++) {
+
+        let mision = misiones[i];
+
+        let card = document.createElement("div");
+        card.classList.add("card");
+        card.classList.add(mision.tipo);
+
+        let contenido = `
+    <h3>${mision.nombre}</h3>
+    <img src="${mision.imagen}" width="200" height="150">
+`;
+
+        // Mostrar atributos según tipo
+if (mision.tipo === "buena") {
+
+    contenido += `
+        <p>+${mision.bonos || 0} Bonos</p>
+        <p>+${mision.conducta || 0} Comportamiento</p>
+    `;
+
+    if (mision.sentencia && mision.sentencia < 0) {
+        contenido += `<p>${mision.sentencia} min sentencia</p>`;
+    }
+
+} else if (mision.tipo === "mala") {
+
+    contenido += `
+        <p>${mision.conducta || 0} Respeto</p>
+    `;
+
+    if (mision.sentencia && mision.sentencia > 0) {
+        contenido += `<p>+${mision.sentencia} min sentencia</p>`;
+    }
+}
+
+contenido += `
+    <p>CD: ${formatearTiempo(mision.cooldown)}</p>
+    <button id="btn-${mision.id}" onclick="iniciarCooldown(${mision.id})">
+        Iniciar
+    </button>
+    <p id="timer-${mision.id}"></p>
+`;
+
+card.innerHTML = contenido;
+
+        contenedor.appendChild(card);
+    }
+}
+
+// 🔹 FUNCIÓN DEL COOLDOWN
+function iniciarCooldown(id) {
+
+    let mision = misiones.find(m => m.id === id);
+    let boton = document.getElementById("btn-" + id);
+
+    if (boton.disabled) return;
+
+    // 🔹 Conducta
+    if (mision.conducta) {
+        modificarConducta(mision.conducta);
+    }
+
+    // 🔹 Sentencia (minutos reales)
+    if (mision.sentencia) {
+
+        if (!usuario.finCondena || usuario.finCondena < Date.now()) {
+            usuario.finCondena = Date.now();
+        }
+
+        usuario.finCondena += (mision.sentencia * 60000);
+
+        if (usuario.finCondena < Date.now()) {
+            usuario.finCondena = null;
+        }
+    }
+
+    // 🔹 Bonos
+    if (mision.bonos) {
+        usuario.bonos += mision.bonos;
+    }
+
+    guardarUsuario();
+    actualizarBarraConducta();
+    iniciarRelojCondena();
+
+    // 🔹 Cooldown
+    let fin = Date.now() + (mision.cooldown * 1000);
+    usuario.cooldowns[id] = fin;
+    guardarUsuario();
+
+    activarTemporizador(id, fin);
+}
+
+// 🔹 EJECUTAR AL CARGAR
+cargarUsuario();
+
+function guardarUsuario() {
+    localStorage.setItem("usuario", JSON.stringify(usuario));
+}
+
+function modificarConducta(valor) {
+
+    usuario.conducta += valor;
+
+    if (usuario.conducta > 100) {
+        usuario.conducta = 100;
+    }
+
+    if (usuario.conducta < -100) {
+        usuario.conducta = -100;
+    }
+
+    guardarUsuario();
+}
+
+function actualizarBarraConducta() {
+
+    let barraIzq = document.getElementById("barraIzq");
+    let barraDer = document.getElementById("barraDer");
+    let texto = document.getElementById("textoConducta");
+
+    let valor = usuario.conducta; // -100 a 100
+    texto.innerText = "Conducta: " + valor;
+
+    let porcentaje = (Math.abs(valor) / 100) * 50;
+
+    if (valor > 0) {
+        barraDer.style.width = porcentaje + "%";
+        barraIzq.style.width = "0%";
+    } 
+    else if (valor < 0) {
+        barraIzq.style.width = porcentaje + "%";
+        barraDer.style.width = "0%";
+    } 
+    else {
+        barraIzq.style.width = "0%";
+        barraDer.style.width = "0%";
+    }
+}
+
+cargarMisiones();
+
+function activarTemporizador(id, fin) {
+
+    let boton = document.getElementById("btn-" + id);
+    let timerElemento = document.getElementById("timer-" + id);
+
+    if (!boton || !timerElemento) return;
+
+    boton.disabled = true;
+    boton.innerText = "En CD";
+
+    let intervalo = setInterval(function() {
+
+        let restante = fin - Date.now();
+
+    if (restante <= 0) {
+
+        clearInterval(intervalo);
+
+        timerElemento.innerText = "Disponible";
+        boton.disabled = false;
+        boton.innerText = "Iniciar";
+
+        delete usuario.cooldowns[id];
+        guardarUsuario();
+
+        // 🔔 sonido
+        document.getElementById("sonidoCD").play();
+
+
+        } else {
+
+            timerElemento.innerText =
+                "Disponible en: " + formatearTiempo(Math.floor(restante / 1000));
+        }
+
+    }, 1000);
+}
+
+function revisarCooldowns() {
+
+    for (let i = 0; i < misiones.length; i++) {
+
+        let id = misiones[i].id;
+        let fin = usuario.cooldowns[id];
+
+        if (fin) {
+
+            if (fin > Date.now()) {
+                activarTemporizador(id, fin);
+            } else {
+                delete usuario.cooldowns[id];
+                guardarUsuario();
+            }
+        }
+    }
+}
+
+function iniciarRelojCondena() {
+
+    let reloj = document.getElementById("relojCondena");
+
+    if (!usuario.finCondena) {
+        reloj.innerText = "Sin condena";
+        return;
+    }
+
+    let intervalo = setInterval(function() {
+
+        let restante = usuario.finCondena - Date.now();
+
+        if (restante <= 0) {
+            clearInterval(intervalo);
+            usuario.finCondena = null;
+            guardarUsuario();
+            reloj.innerText = "Condena cumplida";
+        } else {
+            reloj.innerText = "Condena restante: " + 
+                formatearTiempo(Math.floor(restante / 1000));
+        }
+
+    }, 1000);
+}
+
+function restaurarCooldowns() {
+
+    for (let id in usuario.cooldowns) {
+
+        let fin = usuario.cooldowns[id];
+
+        if (fin > Date.now()) {
+            activarTemporizador(id, fin);
+        } else {
+            delete usuario.cooldowns[id];
+        }
+    }
+
+    guardarUsuario();
+}
+
+function reiniciarUsuario() {
+
+    if (!confirm("¿Seguro que querés reiniciar la partida?")) return;
+
+    localStorage.removeItem("usuario");
+
+    location.reload();
+}
+
+
+    
+revisarCooldowns();
+actualizarBarraConducta();
+iniciarRelojCondena();
+activarTemporizador();
+restaurarCooldowns();
+
+</script>
+
+</body>
+</html>
